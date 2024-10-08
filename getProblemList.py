@@ -32,7 +32,7 @@ def get_problems_from_page(driver, page_number):
 # Function to check the number of div elements within the "root" div
 def check_problem_validity(driver, problem_url, formatted_problem, valid_problems, invalid_problems):
     driver.get(problem_url)
-    time.sleep(3)  # Wait for the page to load
+    time.sleep(1)  # Wait for the page to load
     
     soup = BeautifulSoup(driver.page_source, 'html.parser')
     
