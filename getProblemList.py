@@ -51,7 +51,6 @@ def check_problem_validity(driver, problem_url, formatted_problem, valid_problem
     else:
         print(f"Skipping problem at {problem_url} as the root div was not found.")
 
-# Main scraping function
 def scrape_problems():
     driver = get_driver()
     page_num = 1  # Start from the first page
