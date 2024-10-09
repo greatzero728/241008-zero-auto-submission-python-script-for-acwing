@@ -1,6 +1,7 @@
 import os
 import traceback
 import time
+import pyperclip
 import json
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
@@ -67,15 +68,8 @@ def load_valid_problems():
     with open('validProblems.json', 'r', encoding='utf-8') as file:
         return json.load(file)
 
-def submit(problem_id, code):
+def submit(problem, code):
     """Submit the code to a specific problem and return the submission ID."""
-    problems = load_valid_problems()
-    problem = next((p for p in problems if p['id'] == problem_id), None)
-    
-    if problem is None:
-        print("Problem not found.")
-        raise
-
     try:
         submission_url = problem['url']
         driver.get(submission_url)
@@ -93,10 +87,13 @@ def submit(problem_id, code):
             EC.presence_of_element_located((By.XPATH, '/html/body/div[7]/div[1]/div/div/div/div[4]/div[2]/div/div[3]'))
         )
 
+        # Copy the code to the clipboard
+        pyperclip.copy(code)
+
+        # Move to the code input area, click it, and perform Ctrl+V
         actions = ActionChains(driver)
-        actions.move_to_element(code_input_area).click().perform()
-        actions.send_keys(code).perform()  # This simulates typing the code into the editor
-        
+        actions.move_to_element(code_input_area).click().key_down(Keys.CONTROL).send_keys('v').key_up(Keys.CONTROL).perform()
+
         time.sleep(1)
         print("Code input successful.")
 
@@ -132,17 +129,56 @@ def submit(problem_id, code):
         traceback.print_exc()  # Print full stack trace for better debugging
         return None
 
-if __name__ == "__main__":
-    sample_problem_id = 5981
-    sample_code = '''#include<bits/stdc++.h>
-using namespace std;
-int main() {return 0;}'''
+def get_status(submission_id):
+    """Check the status of a specific submission using the submission_id."""
+    try:
+        # Construct the URL for the submission details page
+        status_url = f"https://www.acwing.com/problem/content/submission/code_detail/{submission_id}/"
+        driver.get(status_url)
+        print(f"Opened status URL: {status_url}")
+
+        # Wait for the page to load and find the result element by its ID: #submission-result
+        result_element = WebDriverWait(driver, WAIT_TIME).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, "#submission-result"))
+        )
+
+        # Extract and return the submission result text (e.g., Pending, Accepted, Wrong Answer)
+        submission_status = result_element.text
+        print(f"Submission status: {submission_status}")
+        return submission_status
+    except Exception as e:
+        print(f"Error while checking the submission status: {e}")
+        traceback.print_exc()
+        return None
+
+class acwingSubmitter:
+    def __init__(self):
+        self.problems = load_valid_problems()
+        login()
+
+    def submit(self, problem_id, code):
+        problem = next((p for p in self.problems if p['id'] == problem_id), None)
+        if problem is None:
+            print(f"Problem with ID {problem_id} not found.")
+            raise
+        return submit(problem, code)
+
+    def get_result(self, problem_id, submission_id):
+        return get_status(submission_id)
     
-    if login():
-        submission_id = submit(sample_problem_id, sample_code)
-        if submission_id:
-            print(f"Code submitted successfully with Submission ID: {submission_id}")
-        else:
-            print("Code submission failed.")
-    else:
-        print("Login failed, cannot proceed with submission.")
+if __name__ == "__main__":
+    a = acwingSubmitter()
+    sid = a.submit(1, "#include<iostream>\nusing namespace std;\nint main() {\n    int x, y;\n    cin >> x >> y;\n    cout << x + y;\n}")
+    print(sid)
+    
+    print(a.get_result(1, sid))
+    time.sleep(5)
+    print(a.get_result(1, sid))
+
+    b = acwingSubmitter()
+    sid = b.submit(5981, "#include<iostream>\n//I love acade\n//I want to work in acade project\n//I love acade\n//I want to work in acade project\n//I love acade\n//I want to work in acade project\n//I love acade\n//I want to work in acade project\n//I love acade\n//I want to work in acade project\n//I love acade\n//I want to work in acade project\n//I love acade\n//I want to work in acade project\n//I love acade\n//I want to work in acade project\n//I love acade\n//I want to work in acade project\n//I love acade\n//I want to work in acade project\n//I love acade\n//I want to work in acade project\n//I love acade\n//I want to work in acade project\n//I love acade\n//I want to work in acade project\n//I love acade\n//I want to work in acade project\n//I love acade\n//I want to work in acade project\n//I love acade\n//I want to work in acade project\n//I love acade\n//I want to work in acade project\n//I love acade\n//I want to work in acade project\n//I love acade\n//I want to work in acade project\n//I love acade\n//I want to work in acade project\nusing namespace std;\nint main() {\n    int x, y;\n    cin >> x >> y;\n    cout << x + y;\n}")
+    print(sid)
+    
+    print(b.get_result(5981, sid))
+    time.sleep(5)
+    print(b.get_result(5981, sid))
