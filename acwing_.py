@@ -68,8 +68,25 @@ def load_valid_problems():
     with open('validProblems.json', 'r', encoding='utf-8') as file:
         return json.load(file)
 
+def is_logged_in():
+    """Check if the user is logged in by looking for the login button."""
+    try:
+        # Scroll to the topmost position to check the login state
+        driver.execute_script("window.scrollTo(0, 0);")
+        time.sleep(1)  # Allow time for the page to settle
+
+        # Check for the existence of the login modal button
+        login_button = driver.find_elements(By.CSS_SELECTOR, 'a[data-target="#login-modal"]')
+        return len(login_button) == 0  # If not found, the user is logged in
+    except Exception:
+        return False  # Default to logged out state on error
+
 def submit(problem, code):
     """Submit the code to a specific problem and return the submission ID."""
+    if not is_logged_in():
+        print("Currently logged out. Logging in...")
+        login()
+
     try:
         submission_url = problem['url']
         driver.get(submission_url)
@@ -96,6 +113,10 @@ def submit(problem, code):
 
         time.sleep(1)
         print("Code input successful.")
+
+        # Scroll to the submit button area
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        time.sleep(2)
 
         # Now click the submit button using CSS selector
         submit_button = WebDriverWait(driver, WAIT_TIME).until(
@@ -131,6 +152,10 @@ def submit(problem, code):
 
 def get_status(submission_id):
     """Check the status of a specific submission using the submission_id."""
+    if not is_logged_in():
+        print("Currently logged out. Logging in...")
+        login()
+
     try:
         # Construct the URL for the submission details page
         status_url = f"https://www.acwing.com/problem/content/submission/code_detail/{submission_id}/"
@@ -154,7 +179,9 @@ def get_status(submission_id):
 class acwingSubmitter:
     def __init__(self):
         self.problems = load_valid_problems()
-        login()
+        if not is_logged_in():
+            print("Currently logged out. Logging in...")
+            login()
 
     def submit(self, problem_id, code):
         problem = next((p for p in self.problems if p['id'] == problem_id), None)
@@ -176,7 +203,7 @@ if __name__ == "__main__":
     print(a.get_result(1, sid))
 
     b = acwingSubmitter()
-    sid = b.submit(5981, "#include<iostream>\n//I love acade\n//I want to work in acade project\n//I love acade\n//I want to work in acade project\n//I love acade\n//I want to work in acade project\n//I love acade\n//I want to work in acade project\n//I love acade\n//I want to work in acade project\n//I love acade\n//I want to work in acade project\n//I love acade\n//I want to work in acade project\n//I love acade\n//I want to work in acade project\n//I love acade\n//I want to work in acade project\n//I love acade\n//I want to work in acade project\n//I love acade\n//I want to work in acade project\n//I love acade\n//I want to work in acade project\n//I love acade\n//I want to work in acade project\n//I love acade\n//I want to work in acade project\n//I love acade\n//I want to work in acade project\n//I love acade\n//I want to work in acade project\n//I love acade\n//I want to work in acade project\n//I love acade\n//I want to work in acade project\n//I love acade\n//I want to work in acade project\n//I love acade\n//I want to work in acade project\nusing namespace std;\nint main() {\n    int x, y;\n    cin >> x >> y;\n    cout << x + y;\n}")
+    sid = b.submit(5981, "#include <iostream>\n// I love acade\n// I want to work in acade project\n// I love acade\n// I want to work in acade project\n// I love acade\n// I want to work in acade project\n// I love acade\n// I want to work in acade project\n// I love acade\n// I want to work in acade project\n// I love acade\n// I want to work in acade project\n// I love acade\n// I want to work in acade project\n// I love acade\n// I want to work in acade project\n// I love acade\n// I want to work in acade project\n// I love acade\n// I want to work in acade project\n// I love acade\n// I want to work in acade project\n// I love acade\n// I want to work in acade project\n// I love acade\n// I want to work in acade project\n// I love acade\n// I want to work in acade project\nusing namespace std;\nint main() {\n    int x, y;\n    cin >> x >> y;\n    cout << x + y;\n}")
     print(sid)
     
     print(b.get_result(5981, sid))
